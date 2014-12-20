@@ -32,6 +32,8 @@ import time
 import packet
 from packet import cbreak
 
+import rgbled 
+
 class CommandProcessor:
   def __init__(self):
     self.commands = { }
@@ -59,23 +61,23 @@ class CommandProcessor:
         if 'reset' in dir(cmd):
           cmd.reset()
 
-		if data[0:3] == 'LED':
-			cmd = self.commands[data[0:3]]
-			para = data[3:].split('')
-			red   = int(para[1])
-			green =	int(para[2])
-			blue  = int(para[3])
-			cmd.setColor([red, green, blue])
-			if para[0] == "setColor":
-				 cmd.setColor([red, green, blue])
-			else if para[0] == "blink":
-				 period = para[4]
-				 count  = para[5]
-				 cmd.setBlink(period, count)
-			else if para[0] == "b":
-				 period = para[4]
-				 count  = para[5]
-				 cmd.setBreath(period, count)
+    if data[0:3] == 'LED':
+      cmd = self.commands[data[0:3]]
+      para = data[3:].split('')
+      red   = int(para[1])
+      green = int(para[2])
+      blue  = int(para[3])
+      cmd.setColor([red, green, blue])
+      if para[0] == "set_led_color":
+        cmd.setColor([red, green, blue])
+      elif para[0] == "set_led_blink":
+        period = para[4]
+        count  = para[5]
+        cmd.setBlink(period, count)
+      elif para[0] == "set_led_breath":
+        period = para[4]
+	count  = para[5]
+	cmd.setBreath(period, count)
 
     cmd = self.commands[data[0]]
     return cmd.run(data[1:])
@@ -85,7 +87,7 @@ cp = CommandProcessor()
 import processes
 processes.init(cp)
 
-cp.register('LED', RGBLED_Command(self))
+cp.register('LED', rgbled.RGBLED_Command(cp))
 pr = packet.PacketReader(cp)
 start_time = time.time()
 with cbreak():
